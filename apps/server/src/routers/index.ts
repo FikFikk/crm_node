@@ -1,2 +1,2 @@
-export const appRouter = {};
-export type AppRouter = typeof appRouter;
+// src/routers/index.ts
+export { whatsappRouter } from './whatsapp.router';

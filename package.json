@@ -14,5 +14,10 @@
     "dev:web": "npm run dev --workspace web",
     "dev:server": "npm run dev --workspace server"
   },
-  "packageManager": "npm@10.9.3"
+  "packageManager": "npm@10.9.3",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.3",
+    "dotenv": "^17.2.2",
+    "typescript": "^5.9.2"
+  }
 }
