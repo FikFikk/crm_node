@@ -24,5 +24,5 @@ export function setupSocketIO(io: SocketIOServer) {
 
 export function broadcastToCompany(io: SocketIOServer, companyId: string, event: string, data: any) {
   io.to(`company_${companyId}`).emit(event, data);
-  Logger.info(`Broadcasted ${event} to company ${companyId}:`, data);
+  // Logger.info(`Broadcasted ${event} to company ${companyId}:`, data);
 }

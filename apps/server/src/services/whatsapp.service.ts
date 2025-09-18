@@ -1,5 +1,6 @@
 // src/services/whatsapp.service.ts
 import makeWASocket, { DisconnectReason } from '@whiskeysockets/baileys';
+import P from 'pino';
 import Boom from '@hapi/boom';
 import { connectionStore } from '../stores/connection.store';
 import { AuthService } from './auth.service';
@@ -32,7 +33,9 @@ export class WhatsAppService {
       const { state, saveCreds } = await AuthService.getAuthState(companyId);
       const sock = makeWASocket({ 
         auth: state, 
-        printQRInTerminal: false
+        printQRInTerminal: false,
+        logger: P({level: "silent"}) // hanya tampilkan error
+        // Use default logger or implement your own that matches ILogger interface
       });
 
       // Set socket ke connectionStore
@@ -40,6 +43,9 @@ export class WhatsAppService {
 
       sock.ev.on('creds.update', saveCreds);
       sock.ev.on('connection.update', (update) => this.handleConnectionUpdate(companyId, update));
+      // sock.ev.on('messages.upsert', async (m) => {
+      //   await this.handleIncomingMessages(companyId, m);
+      // });
       // Tambahkan ACK pada pesan masuk
       sock.ev.on('messages.upsert', async (m) => {
         // Jalankan handler lama
@@ -75,7 +81,7 @@ export class WhatsAppService {
 
   private static async handleConnectionUpdate(companyId: string, update: any) {
     const { connection, lastDisconnect, qr } = update;
-    Logger.info(`Company ${companyId} connection update:`, update);
+    // Logger.info(`Company ${companyId} connection update:`, update);
 
     if (qr) {
       Logger.info(`QR Code generated for company ${companyId}`);
@@ -219,7 +225,7 @@ export class WhatsAppService {
         ...messageContent.media
       };
 
-      Logger.info(`[Message webhook] Sending to PHP:`, messageData);
+      // Logger.info(`[Message webhook] Sending to PHP:`, messageData);
       
       this.broadcast(companyId, 'message_received', {
         success: true,
