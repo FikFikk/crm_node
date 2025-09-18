@@ -16,4 +16,8 @@ export class AuthService {
   static hasExistingAuth(companyId: string): boolean {
     return FileManager.sessionExists(companyId);
   }
+
+  static async getAllCompanyIdsWithAuth(): Promise<string[]> {
+    return FileManager.listAllCompanyIdsWithAuth();
+  }
 }

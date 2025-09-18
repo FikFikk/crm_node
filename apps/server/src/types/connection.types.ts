@@ -7,7 +7,7 @@ export interface ConnectionInfo {
   phoneNumber?: string;
 }
 
-export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'failed' | 'qr_generated';
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'failed' | 'qr_generated' | 'need_qr';
 
 export interface ConnectionUpdate {
   company_id: string;

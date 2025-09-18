@@ -35,9 +35,29 @@ export class WhatsAppService {
         printQRInTerminal: false
       });
 
+      // Set socket ke connectionStore
+      connectionStore.set(companyId, sock);
+
       sock.ev.on('creds.update', saveCreds);
       sock.ev.on('connection.update', (update) => this.handleConnectionUpdate(companyId, update));
-      sock.ev.on('messages.upsert', (m) => this.handleIncomingMessages(companyId, m));
+      // Tambahkan ACK pada pesan masuk
+      sock.ev.on('messages.upsert', async (m) => {
+        // Jalankan handler lama
+        await this.handleIncomingMessages(companyId, m);
+        // Kirim ACK (read receipt) jika ada pesan masuk
+        try {
+          if (m.messages && m.messages.length > 0) {
+            for (const msg of m.messages) {
+              if (!msg.key.fromMe) {
+                await sock.readMessages([msg.key]);
+                Logger.info(`ACK sent for message: ${msg.key.id}`);
+              }
+            }
+          }
+        } catch (ackErr) {
+          Logger.error('Failed to send ACK:', ackErr);
+        }
+      });
 
       return sock;
     } catch (error) {
@@ -90,31 +110,42 @@ export class WhatsAppService {
 
   private static async handleConnectionClose(companyId: string, lastDisconnect: any) {
     let shouldReconnect = false;
+    let statusToSet = 'disconnected';
     
     if (lastDisconnect?.error) {
       const boomError = Boom.boomify(lastDisconnect.error);
-      shouldReconnect = boomError.output?.statusCode !== DisconnectReason.loggedOut;
+      const errorMessage = lastDisconnect.error.message || 'Unknown error';
       
-      if (boomError.output?.statusCode === DisconnectReason.loggedOut) {
+      // Cek jika error karena QR refs attempts ended
+      if (errorMessage.includes('QR refs attempts ended')) {
+        Logger.warn(`Company ${companyId} QR timeout - needs manual QR scan`);
+        statusToSet = 'need_qr';
+        shouldReconnect = false; // Jangan auto-reconnect jika perlu QR manual
+      } else if (boomError.output?.statusCode === DisconnectReason.loggedOut) {
         Logger.info(`Company ${companyId} logged out, cleaning auth_info`);
         await AuthService.cleanAuth(companyId);
+        statusToSet = 'need_qr';
+        shouldReconnect = false;
+      } else {
+        shouldReconnect = true;
+        Logger.warn(`Company ${companyId} disconnected: ${errorMessage}`);
       }
     }
     
-    Logger.info(`Company ${companyId} connection closed. Reconnecting: ${shouldReconnect}`);
-    connectionStore.setStatus(companyId, 'disconnected');
+    Logger.info(`Company ${companyId} connection closed. Status: ${statusToSet}, Reconnecting: ${shouldReconnect}`);
+    connectionStore.setStatus(companyId, statusToSet as any);
     connectionStore.delete(companyId);
     QRCodeService.clearQRCode(companyId);
     
     this.broadcast(companyId, 'connection_status', {
       company_id: companyId,
-      status: 'disconnected',
+      status: statusToSet,
       connected: false
     });
     
     await NotificationService.notifyPHPBackend('connection_update', {
       company_id: companyId,
-      status: 'disconnected'
+      status: statusToSet
     });
     
     if (shouldReconnect) {
@@ -158,7 +189,7 @@ export class WhatsAppService {
   }
 
   private static async handleIncomingMessages(companyId: string, m: any) {
-    Logger.info(`Company ${companyId} received message:`, JSON.stringify(m, null, 2));
+    // Logger.info(`Company ${companyId} received message:`, JSON.stringify(m, null, 2));
 
     for (const message of m.messages) {
       if (message.key.fromMe) continue;
@@ -215,11 +246,17 @@ export class WhatsAppService {
     }
   }
 
-  static async sendMessage(companyId: string, to: string, message: string) {
+  static async sendMessage(companyId: string, to: string, message: string, replyMsgKey?: any) {
     const sock = connectionStore.get(companyId);
     if (!sock) {
       throw new Error('WhatsApp not connected for this company');
     }
+
+    // Jika ada replyMsgKey, tandai sebagai dibaca
+  if (replyMsgKey) {
+    await sock.readMessages([replyMsgKey]);
+    Logger.info(`ACK sent for replied message: ${replyMsgKey.id}`);
+  }
 
     const result = await MessageService.sendMessage(sock, to, message);
     

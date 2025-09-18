@@ -1,3 +1,4 @@
+import { connectionStore } from './stores/connection.store';
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -34,14 +35,18 @@ WhatsAppService.setBroadcastFunction((companyId: string, event: string, data: an
 // Setup routes
 app.use('/', whatsappRouter);
 
-// Start server dengan Socket.IO
-server.listen(CONSTANTS.PORT, () => {
-  Logger.info(`WhatsApp Baileys service with Socket.IO running on port ${CONSTANTS.PORT}`);
-  Logger.info('Available endpoints:');
-  Logger.info('- GET  /qr-code?id=X    - Generate QR code for company');
-  Logger.info('- POST /send-message    - Send WhatsApp message');
-  Logger.info('- GET  /status/:id      - Get connection status');
-  Logger.info('- POST /disconnect/:id  - Disconnect WhatsApp');
-  Logger.info('- GET  /test            - Health check');
-  Logger.info('Socket.IO server ready for realtime messaging');
+
+// Jalankan auto-reconnect sebelum server listen
+connectionStore.autoReconnectAll().then(() => {
+  Logger.info('Auto-reconnect WhatsApp selesai dijalankan');
+  server.listen(CONSTANTS.PORT, () => {
+    Logger.info(`WhatsApp Baileys service with Socket.IO running on port ${CONSTANTS.PORT}`);
+    Logger.info('Available endpoints:');
+    Logger.info('- GET  /qr-code?id=X    - Generate QR code for company');
+    Logger.info('- POST /send-message    - Send WhatsApp message');
+    Logger.info('- GET  /status/:id      - Get connection status');
+    Logger.info('- POST /disconnect/:id  - Disconnect WhatsApp');
+    Logger.info('- GET  /test            - Health check');
+    Logger.info('Socket.IO server ready for realtime messaging');
+  });
 });

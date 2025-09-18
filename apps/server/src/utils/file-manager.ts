@@ -31,4 +31,13 @@ export class FileManager {
     const sessionPath = this.getSessionPath(companyId);
     return fs.existsSync(sessionPath);
   }
+
+  // Tambahan: list all companyIds yang punya session folder
+  static listAllCompanyIdsWithAuth(): string[] {
+    const baseDir = process.cwd();
+    const entries = fs.readdirSync(baseDir, { withFileTypes: true });
+    return entries
+      .filter(e => e.isDirectory() && e.name.startsWith('auth_info_'))
+      .map(e => e.name.replace('auth_info_', ''));
+  }
 }
