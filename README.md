@@ -29,7 +29,19 @@ Create a `.env` file in the root with at least:
 ```
 PORT=3000
 ALLOWED_ORIGINS=http://localhost:3000
+CORS_ORIGIN=http://localhost:3001
+BETTER_AUTH_SECRET=your_auth_secret_here
+BETTER_AUTH_URL=http://localhost:3000
+PHP_KEY=your_php_backend_key
 ```
+
+**Variable explanations:**
+
+- `PORT`: Port for the WhatsApp API server.
+- `ALLOWED_ORIGINS` / `CORS_ORIGIN`: Allowed origins for CORS (frontend or CRM backend URLs).
+- `BETTER_AUTH_SECRET`: Secret key for authenticating with the Better-T-Stack auth service. You get this from your authentication provider or set it in your auth service config. Make sure it matches the backend's expected secret.
+- `BETTER_AUTH_URL`: URL of the authentication service (usually your backend or SSO server).
+- `PHP_KEY`: API key/token provided by the PHP CRM backend. This is used for secure communication between the WhatsApp service and the backend. Obtain this from your backend admin or environment config.
 
 Add other Baileys/CRM config as needed.
 
