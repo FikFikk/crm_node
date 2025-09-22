@@ -4,9 +4,9 @@ import { CONSTANTS } from '../config';
 import { Logger } from '../utils/logger';
 
 export class NotificationService {
-  static async notifyPHPBackend(event: string, data: any): Promise<void> {
+  static async notifyPHPBackend(event: string, data: any): Promise<any> {
     try {
-      await axios.post(`${CONSTANTS.PHP_BACKEND_URL}/wa/webhook`, {
+      const response = await axios.post(`${CONSTANTS.PHP_BACKEND_URL}/wa/webhook`, {
         event,
         ...data
       }, {
@@ -16,8 +16,10 @@ export class NotificationService {
         }
       });
       Logger.info(`Notified PHP backend: ${event}`, data);
+      return response.data; // Return response data from PHP
     } catch (error) {
       Logger.error('Failed to notify PHP backend:', error);
+      return null;
     }
   }
 }

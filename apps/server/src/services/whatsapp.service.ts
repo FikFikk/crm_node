@@ -227,6 +227,16 @@ export class WhatsAppService {
 
       // Logger.info(`[Message webhook] Sending to PHP:`, messageData);
       
+      // Send to PHP first to get customer ID, then emit to socket
+      const phpResponse = await NotificationService.notifyPHPBackend('message_received', messageData);
+      
+      // Extract customer_id from PHP response if available
+      let customerId = null;
+      if (phpResponse && typeof phpResponse === 'object' && 'customer_id' in phpResponse) {
+        customerId = phpResponse.customer_id;
+      }
+      
+      // Emit ke socket dengan customer ID dari PHP response
       this.broadcast(companyId, 'message_received', {
         success: true,
         chat: {
@@ -240,6 +250,7 @@ export class WhatsAppService {
           ...messageContent.media
         },
         customer: {
+          id: customerId, // Now includes customer ID from PHP
           name: message.pushName || `WA ${phone}`,
           phone: phone
         },
@@ -247,8 +258,6 @@ export class WhatsAppService {
           id: companyId
         }
       });
-      
-      await NotificationService.notifyPHPBackend('message_received', messageData);
     }
   }
 
