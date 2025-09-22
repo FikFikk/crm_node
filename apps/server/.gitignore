@@ -21,6 +21,11 @@ dist/
 .vercel
 prisma/generated/
 
+auth-info.json
+auth_info_*
+session/
+*.session
+
 
 # deps
 node_modules/
