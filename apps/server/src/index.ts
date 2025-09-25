@@ -25,14 +25,24 @@ const io = new SocketIOServer(server, {
 });
 
 // Setup middleware
+// Log semua request yang masuk
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path} - Origin: ${req.headers.origin || 'NO_ORIGIN'}`);
+  next();
+});
+
 // Simple CORS middleware that allows all origins
 app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  console.log(`[CORS] Setting headers for origin: ${origin}`);
+  
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-api-key');
   res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
+    console.log(`[CORS] Handling OPTIONS preflight for: ${req.path}`);
     res.sendStatus(200);
   } else {
     next();
@@ -57,6 +67,12 @@ app.use('/', whatsappRouter);
 // Jalankan auto-reconnect sebelum server listen
 connectionStore.autoReconnectAll().then(() => {
   Logger.info('Auto-reconnect WhatsApp selesai dijalankan');
+  Logger.info('=== CORS DEBUG INFO ===');
+  Logger.info('CORS_ORIGINS config:', CONSTANTS.CORS_ORIGINS);
+  Logger.info('Socket.IO CORS: Allow ALL origins (*)');
+  Logger.info('Express CORS: Allow ALL origins (*)');
+  Logger.info('======================');
+  
   server.listen(CONSTANTS.PORT, () => {
     Logger.info(`WhatsApp Baileys service with Socket.IO running on port ${CONSTANTS.PORT}`);
     Logger.info('Available endpoints:');
