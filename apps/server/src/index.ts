@@ -67,11 +67,17 @@ app.use('/', whatsappRouter);
 // Jalankan auto-reconnect sebelum server listen
 connectionStore.autoReconnectAll().then(() => {
   Logger.info('Auto-reconnect WhatsApp selesai dijalankan');
-  Logger.info('=== CORS DEBUG INFO ===');
+  Logger.info('=== ENVIRONMENT DEBUG INFO ===');
+  Logger.info('NODE_ENV:', process.env.NODE_ENV || 'NOT_SET');
+  Logger.info('PHP_BACKEND_URL env var:', process.env.PHP_BACKEND_URL || 'NOT_SET');
+  Logger.info('PHP_BACKEND_URL actual:', CONSTANTS.PHP_BACKEND_URL);
+  Logger.info('PHP_KEY env var:', process.env.PHP_KEY ? 'SET' : 'NOT_SET');
+  Logger.info('PORT env var:', process.env.PORT || 'NOT_SET');
+  Logger.info('PORT actual:', CONSTANTS.PORT);
   Logger.info('CORS_ORIGINS config:', CONSTANTS.CORS_ORIGINS);
   Logger.info('Socket.IO CORS: Allow ALL origins (*)');
   Logger.info('Express CORS: Allow ALL origins (*)');
-  Logger.info('======================');
+  Logger.info('===============================');
   
   server.listen(CONSTANTS.PORT, () => {
     Logger.info(`WhatsApp Baileys service with Socket.IO running on port ${CONSTANTS.PORT}`);
