@@ -17,7 +17,7 @@ console.log('[SERVER DEBUG] CORS_ORIGINS config:', CONSTANTS.CORS_ORIGINS);
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*", // Allow all origins sementara
+    origin: "https://minicrm.jasamobileapp.com", // Allow all origins sementara
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "x-api-key"]
