@@ -17,36 +17,30 @@ console.log('[SERVER DEBUG] CORS_ORIGINS config:', CONSTANTS.CORS_ORIGINS);
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: function(origin, callback) {
-      console.log('[SOCKETIO CORS DEBUG] Incoming Origin:', origin);
-      console.log('[SOCKETIO CORS DEBUG] Allowed Origins:', CONSTANTS.CORS_ORIGINS);
-      if (!origin || CONSTANTS.CORS_ORIGINS.includes(origin)) {
-        console.log('[SOCKETIO CORS DEBUG] Origin ALLOWED');
-        callback(null, true);
-      } else {
-        console.log('[SOCKETIO CORS DEBUG] Origin REJECTED');
-        callback(new Error('Not allowed by CORS: ' + origin));
-      }
-    },
+    origin: "*", // Allow all origins sementara
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"]
   }
 });
 
 // Setup middleware
-app.use(corsMiddleware);
-app.use(express.json());
-app.use(loggingMiddleware);
-
-// Handle preflight requests specifically for socket.io
-app.options('/socket.io/*', (req, res) => {
-  console.log('[OPTIONS DEBUG] Preflight request for socket.io from:', req.headers.origin);
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
+// Simple CORS middleware that allows all origins
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-api-key');
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 });
+
+app.use(express.json());
+app.use(loggingMiddleware);
 
 // Setup Socket.IO
 setupSocketIO(io);
