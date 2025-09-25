@@ -16,6 +16,8 @@ export const CONSTANTS = {
   //     ]
   
   CORS_ORIGINS: [
-    "https://minicrm.jasamobileapp.com"
+    "https://minicrm.jasamobileapp.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
   ]
 };
