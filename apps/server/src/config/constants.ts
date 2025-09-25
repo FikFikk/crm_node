@@ -6,12 +6,16 @@ export const CONSTANTS = {
   PORT: process.env.PORT || 3001,
   RECONNECT_DELAY: 5000,
   QR_WAIT_TIMEOUT: 3000,
-  // CORS_ORIGINS bisa diatur lewat env: CORS_ORIGINS="http://a.com,http://b.com"
-  CORS_ORIGINS: process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
-    : [
-        "https://minicrm.jasamobileapp.com",
-        "http://localhost:5173",
-        "http://localhost:3000"
-      ]
+  // CORS_ORIGINS statis, tidak mengikuti .env
+  // CORS_ORIGINS: process.env.CORS_ORIGINS
+  //   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
+  //   : [
+  //       "https://minicrm.jasamobileapp.com",
+  //       "http://localhost:5173",
+  //       "http://localhost:3000"
+  //     ]
+  
+  CORS_ORIGINS: [
+    "https://minicrm.jasamobileapp.com"
+  ]
 };
